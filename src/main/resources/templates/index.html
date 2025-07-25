@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>早餐店點餐系統</title>
+    <script>
+        let cart = {
+            1: 0, 2: 0, 3: 0,
+            4: 0, 5: 0, 6: 0,
+            7: 0, 8: 0, 9: 0
+        };
+
+        function updateQuantity(productId, change) {
+            cart[productId] += change;
+            if (cart[productId] < 0) cart[productId] = 0;
+            document.getElementById(`qty-${productId}`).textContent = cart[productId];
+        }
+
+        function submitOrder() {
+            const tableNumber = prompt("請輸入桌號，例如 A1：");
+            if (!tableNumber) return;
+
+            const items = [];
+            for (const [productId, quantity] of Object.entries(cart)) {
+                if (quantity > 0) {
+                    items.push({
+                        productId: parseInt(productId),
+                        quantity: quantity
+                    });
+                }
+            }
+
+            if (items.length === 0) {
+                alert("尚未選擇任何餐點！");
+                return;
+            }
+
+            const order = {
+                tableNumber: tableNumber,
+                items: items
+            };
+
+            fetch("/orders", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(order)
+            }).then(res => {
+                if (res.ok) {
+                    alert("訂單送出成功！");
+                    location.reload();
+                } else {
+                    alert("訂單送出失敗！");
+                }
+            });
+        }
+
+        function queryOrderMain() {
+            fetch("/orders/main")
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("queryResult").textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(err => {
+                    document.getElementById("queryResult").textContent = "查詢失敗: " + err;
+                });
+        }
+
+        function queryOrderItems() {
+            const orderId = document.getElementById("orderIdInput").value;
+            if (!orderId) {
+                alert("請輸入訂單編號！");
+                return;
+            }
+
+            fetch(`/orders/${orderId}/items`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`錯誤碼 ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById("queryResult").textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(err => {
+                    document.getElementById("queryResult").textContent = "查詢失敗: " + err;
+                });
+        }
+    </script>
+</head>
+<body>
+<h1>早餐店點餐系統</h1>
+
+<div><span>1. 火腿漢堡 50元</span>
+    <button onclick="updateQuantity(1, -1)">-</button>
+    <span id="qty-1">0</span>
+    <button onclick="updateQuantity(1, 1)">+</button>
+</div>
+
+<div><span>2. 煙雞漢堡 45元</span>
+    <button onclick="updateQuantity(2, -1)">-</button>
+    <span id="qty-2">0</span>
+    <button onclick="updateQuantity(2, 1)">+</button>
+</div>
+
+<div><span>3. 日式雞排漢堡 65元</span>
+    <button onclick="updateQuantity(3, -1)">-</button>
+    <span id="qty-3">0</span>
+    <button onclick="updateQuantity(3, 1)">+</button>
+</div>
+
+<div><span>4. 熱狗蛋餅 40元</span>
+    <button onclick="updateQuantity(4, -1)">-</button>
+    <span id="qty-4">0</span>
+    <button onclick="updateQuantity(4, 1)">+</button>
+</div>
+
+<div><span>5. 原味蛋餅 30元</span>
+    <button onclick="updateQuantity(5, -1)">-</button>
+    <span id="qty-5">0</span>
+    <button onclick="updateQuantity(5, 1)">+</button>
+</div>
+
+<div><span>6. 培根蛋餅 45元</span>
+    <button onclick="updateQuantity(6, -1)">-</button>
+    <span id="qty-6">0</span>
+    <button onclick="updateQuantity(6, 1)">+</button>
+</div>
+
+<div><span>7. 奶茶 30元</span>
+    <button onclick="updateQuantity(7, -1)">-</button>
+    <span id="qty-7">0</span>
+    <button onclick="updateQuantity(7, 1)">+</button>
+</div>
+
+<div><span>8. 紅茶 20元</span>
+    <button onclick="updateQuantity(8, -1)">-</button>
+    <span id="qty-8">0</span>
+    <button onclick="updateQuantity(8, 1)">+</button>
+</div>
+
+<div><span>9. 豆漿 20元</span>
+    <button onclick="updateQuantity(9, -1)">-</button>
+    <span id="qty-9">0</span>
+    <button onclick="updateQuantity(9, 1)">+</button>
+</div>
+
+<br>
+<button onclick="submitOrder()">送出訂單</button>
+
+<hr>
+
+<h2>訂單查詢功能</h2>
+
+<!-- 查詢訂單主表 -->
+<button onclick="queryOrderMain()">查詢訂單總表</button>
+
+<!-- 輸入訂單編號並查詢 -->
+<input type="number" id="orderIdInput" placeholder="請輸入訂單編號">
+<button onclick="queryOrderItems()">查詢訂單明細</button>
+
+<pre id="queryResult"></pre>
+
+
+
+</body>
+</html>
