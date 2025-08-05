@@ -9,10 +9,12 @@
             background-size: cover; /* 讓背景填滿整個畫面 */
             background-position: center; /* 讓圖片保持在畫面中央 */
             background-repeat: no-repeat; /* 避免圖片重複 */
+            background-attachment: fixed;
             text-align: center; /*文字置中*/
-            height: 100vh; /* 讓背景至少滿版 */
             font-family: "Times New Roman", Arial, serif; /* 設定字體優先度 */
             font-size: 22px; /*字體大小*/
+            margin: 0;
+            padding: 30px;
             padding-bottom: 100px;
         }
 
@@ -63,6 +65,38 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 30px auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* 柔和陰影代替實心邊線 */
+
+        }
+
+        th {
+            background-color: #f7f7f7;
+            border: 1px solid #e0e0e0;  /* 更淡一點 */
+            padding: 14px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #e0e0e0;  /* 更淡一點 */
+            padding: 14px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        #queryResult {
+            margin-top: 30px;
+            margin-bottom: 100px;
         }
 
     </style>
@@ -123,12 +157,68 @@
             fetch("/orders/main")
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById("queryResult").textContent = JSON.stringify(data, null, 2);
+                    // 建立表格 HTML 字串
+                    let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>訂單編號</th>
+                            <th>桌號</th>
+                            <th>總價格</th>
+                            <th>建立時間</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+                    data.forEach(order => {
+                        tableHTML += `
+                    <tr>
+                        <td>${order.orderId}</td>
+                        <td>${order.tableNumber}</td>
+                        <td>${order.totalPrice}</td>
+                        <td>${order.createdTime}</td>
+                    </tr>
+                `;
+                    });
+
+                    tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+                    // 將表格插入頁面
+                    document.getElementById("queryResult").innerHTML = tableHTML;
                 })
                 .catch(err => {
                     document.getElementById("queryResult").textContent = "查詢失敗: " + err;
                 });
         }
+
+        // 商品資料對照表
+        const productMap = {
+            1: "火腿漢堡",
+            2: "燻雞漢堡",
+            3: "日式雞排漢堡",
+            4: "熱狗蛋餅",
+            5: "原味蛋餅",
+            6: "培根蛋餅",
+            7: "奶茶",
+            8: "紅茶",
+            9: "豆漿"
+        };
+
+        const productPriceMap = {
+            1: 50,
+            2: 45,
+            3: 65,
+            4: 40,
+            5: 30,
+            6: 45,
+            7: 30,
+            8: 20,
+            9: 20
+        };
 
         function queryOrderItems() {
             const orderId = document.getElementById("orderIdInput").value;
@@ -145,7 +235,45 @@
                     return res.json();
                 })
                 .then(data => {
-                    document.getElementById("queryResult").textContent = JSON.stringify(data, null, 2);
+                    console.log("回傳資料：", data);  // ← debug 用
+
+                    if (!Array.isArray(data)) {
+                        document.getElementById("queryResult").textContent = "錯誤：回傳的不是陣列";
+                        return;
+                    }
+
+                    let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>商品明細訂單編號</th>
+                            <th>訂單編號</th>
+                            <th>商品名稱</th>
+                            <th>數量</th>
+                            <th>商品單價 x 數量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+                    data.forEach(item => {
+                        const name = productMap[item.productId] || `未知(${item.productId})`;
+                        const price = productPriceMap[item.productId] || 0;
+                        const subtotal = price * item.quantity;
+
+                        tableHTML += `
+                    <tr>
+                        <td>${item.itemId}</td>
+                        <td>${item.orderId}</td>
+                        <td>${name}</td>
+                        <td>${item.quantity}</td>
+                        <td>${price} x ${item.quantity} = ${subtotal}</td>
+                    </tr>
+                `;
+                    });
+
+                    tableHTML += `</tbody></table>`;
+                    document.getElementById("queryResult").innerHTML = tableHTML;
                 })
                 .catch(err => {
                     document.getElementById("queryResult").textContent = "查詢失敗: " + err;
@@ -225,7 +353,7 @@
 <input type="number" id="orderIdInput" placeholder="請輸入訂單編號">
 <button class="btn" onclick="queryOrderItems()">查詢訂單明細</button>
 
-<pre id="queryResult"></pre>
+<div id="queryResult"></div>
 
 
 
