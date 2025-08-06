@@ -12,13 +12,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/orders")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
-    @PostMapping
+    @PostMapping("/orders")
     public String createOrder(@RequestBody OrderRequest orderRequest) {
 
         // 建立 order_main 資料
@@ -42,12 +41,13 @@ public class OrderController {
     }
 
 
-    @GetMapping("/main")
-    public List<OrderMain> getAllOrderMains() {
+    @GetMapping("/orders/main")
+    public List<OrderMain> getAllOrderMains()  {
+
         return orderService.getAllOrderMains();
     }
 
-    @GetMapping("/{orderId}/items")
+    @GetMapping("/orders/{orderId}/items")
     public List<OrderItem> getOrderItems(@PathVariable Integer orderId) {
         return orderService.getOrderItemsByOrderId(orderId);
     }

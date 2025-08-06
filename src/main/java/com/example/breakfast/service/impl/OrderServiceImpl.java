@@ -34,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
             // 計算每筆小計
             int subtotal = product.getPrice() * item.getQuantity();
-            item.setSubtotal(subtotal);  // ✅ 這裡要填上 subtotal
+            item.setSubtotal(subtotal);  //  這裡要填上 subtotal
 
             total += subtotal;           // 加到總價
         }
@@ -50,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderMain> getAllOrderMains() {
+
         return orderDao.getAllOrderMains();
     }
 
